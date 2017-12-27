@@ -1,0 +1,11 @@
+mylist <- c(1:10,12:26,28,29,30,52,53,54) #These are the team numbers currently in use by NHL (31)
+for(i in mylist) { #looping throught the 31 numbers in the list
+  tryCatch(gamelink <- paste("https://statsapi.web.nhl.com/api/v1/teams/",i,"/roster", sep=""),error = function(e) print("Error colnames")) # create the url to read from the NHL API
+  tname <- paste("t",i,sep = "") #no longer needed? 
+  tname <- fromJSON(gamelink) #put the content from the JSON file in tname
+  dfname <- paste("df",i,sep = "") # not needed?
+  dfname <- data.frame(tname$roster) #read the team roster part from the JSON to the dataframe
+  csvname <- paste("Team",i,"roster.csv", sep = "")
+  tryCatch(write.csv(cbind(dfname$person,dfname$jerseyNumber, dfname$position), csvname),error = function(e) print("Error colnames")) #write the dataframe to csv
+  
+}
