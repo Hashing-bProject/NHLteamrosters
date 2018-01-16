@@ -1,11 +1,46 @@
-mylist <- c(1:10,12:26,28,29,30,52,53,54) #These are the team numbers currently in use by NHL (31)
-for(i in mylist) { #looping throught the 31 numbers in the list
-  tryCatch(gamelink <- paste("https://statsapi.web.nhl.com/api/v1/teams/",i,"/roster", sep=""),error = function(e) print("Error colnames")) # create the url to read from the NHL API
-  tname <- paste("t",i,sep = "") #no longer needed? 
-  tname <- fromJSON(gamelink) #put the content from the JSON file in tname
-  dfname <- paste("df",i,sep = "") # not needed?
-  dfname <- data.frame(tname$roster) #read the team roster part from the JSON to the dataframe
-  csvname <- paste("Team",i,"roster.csv", sep = "")
-  tryCatch(write.csv(cbind(dfname$person,dfname$jerseyNumber, dfname$position), csvname),error = function(e) print("Error colnames")) #write the dataframe to csv
+##loads all team rosters from NHL API and combines them into one csv in R
+#read the required libraries
+library(jsonlite)
+
+#set output folder
+setwd("H:/My Documents/Pers/NHL/DATA/R")
+
+#Put the team numbers currently in use by NHL (31) in a list
+NHLteamlist <- c(1:10,12:26,28,29,30,52,53,54) 
+
+#Loop through all 31 team links
+for(i in NHLteamlist) { 
+    
+    #create the URL for team i in the loop
+    tryCatch(gamelink <- paste("https://statsapi.web.nhl.com/api/v1/teams/",i,"/roster", sep=""),error = function(e) print("Error colnames")) # create the url to read from the NHL API
   
+    #create a variable to store the content of the roster of team i, using the jsonlite package to pull data from the URL
+    tname <- fromJSON(gamelink) #put the content from the JSON file in tname
+  
+    #create a dataframe to store the roster content of the data pull
+    dfname <- data.frame(tname$roster) #read the team roster part from the JSON to the dataframe
+    
+    #clean up the dataframe
+    teamroster <- do.call(data.frame, dfname)
+    
+    #add column with team id (i) value
+    teamroster$teamid <- rep(i, nrow(teamroster))
+    
+    #set name for this team based on id (i)
+    trnr <- paste("teamid=",i, sep="")
+   
+    #rename teamroster dataframe to team-id name
+    assign(trnr,teamroster)
+}
+
+#combine all extracted rosters into one dataframe
+nhlrosterscombined <- rbind(`teamid=1`, `teamid=2`, `teamid=3`, `teamid=4`, `teamid=5`, `teamid=6`, `teamid=7`, `teamid=8`
+                            , `teamid=9`, `teamid=10`, `teamid=12`, `teamid=13`, `teamid=14`, `teamid=15`, `teamid=16`
+                            , `teamid=17`, `teamid=18`, `teamid=19`, `teamid=20`, `teamid=21`, `teamid=22`, `teamid=23`
+                            , `teamid=24`, `teamid=25`, `teamid=26`, `teamid=28`, `teamid=29`, `teamid=30`, `teamid=52`
+                            , `teamid=53`, `teamid=54`)
+
+#write combined file to csv file in the work directory
+tryCatch(write.csv(nhlrosterscombined, "nhlrosterscombined.csv"),error = function(e) print("Error colnames")) #write the dataframe to csv
+
 }
